@@ -1,70 +1,70 @@
-# 🛡️ AWS S3 Public Access Auto-Remediation using Terraform (IaC)
+# 🛡️ AWS S3 Public Access Auto-Remediation
 
-[![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
-[![Terraform](https://img.shields.io/badge/terraform-%235835CC.svg?style=for-the-badge&logo=terraform&logoColor=white)](https://www.terraform.io/)
+**Keeping S3 buckets private, automatically.** This project is all about "self-healing" infrastructure. I built a system that keeps a constant eye on an AWS account and instantly flips the "Public Access Block" switches back to **ON** if they ever get turned off.
 
 ---
 
 ## 🗺️ Project Overview
 
-In a cloud environment, misconfigured S3 buckets are a leading cause of data breaches. To mitigate this risk, I developed an **Automated Auto-Remediation System**. This project uses Infrastructure as Code (IaC) to continuously scan an AWS account and automatically "self-heal" any S3 bucket that has public access enabled, ensuring corporate data remains private by default.
+In a real-world cloud setup, one misclicked button can make a bucket public and leak sensitive data. I wanted to solve this without having to manually check settings every day. 
 
-## ☁️ Technical Architecture
+Using **Terraform** and some **Python logic**, I created an automated system that acts like a security guard—scanning the account every 5 minutes and fixing any open buckets it finds.
+
+## ☁️ How it Works
 
 ![Architecture](images/architecture.png)
 
-I used **Terraform** to provision a serverless, event-driven architecture consisting of:
+The setup is pretty straightforward and uses a few key AWS services:
 
-* **Amazon EventBridge:** Triggers the remediation logic every 5 minutes (Scheduled Rule).
-* **AWS Lambda:** A Python-based function that audits bucket configurations.
-* **Amazon S3:** The target service being monitored and secured.
-* **CloudWatch Logs:** For real-time auditing of remediation actions.
+* **Amazon EventBridge:** The "alarm clock" that triggers the check every 5 minutes.
+* **AWS Lambda:** The "brain" that runs a Python script to scan all buckets.
+* **Boto3 SDK:** How the script talks to the S3 API to check and fix settings.
+* **CloudWatch:** Where I keep the logs so I can see exactly what got fixed and when.
 
-## ⚙️ Infrastructure as Code
+## ⚙️ Infrastructure (The Terraform Bit)
 
-Instead of manual "click-ops," the entire security stack is defined in Terraform. This ensures the security policy is reproducible, version-controlled, and can be deployed across multiple regions or accounts instantly.
+I didn't want to click around the AWS Console to set this up, so everything is defined in Terraform. This makes it super easy to deploy the whole stack into any region in a couple of minutes.
 
-![Terraform Logic](images/terraform-apply.png)
-*Figure 1: Terraform execution output ensuring all security resources are provisioned.*
+![Terraform Apply](images/terraform-apply.png)
+*Terraform getting everything ready.*
 
 ---
 
-## ✅ Validation & Proof of Work
+## ✅ Proof it Works
 
-To verify the system's effectiveness, I simulated a configuration drift by manually making a bucket public.
+I ran a quick stress test to make sure the automation was actually doing its job.
 
-### Step 1: Baseline / Vulnerability State
-Initially, a test bucket was configured with public access allowed—a critical security high-risk finding.
+### 1. The "Oops" Moment (Before)
+I manually went into a test bucket and disabled the Public Access Block. Not a good look for security!
 
 ![Public Bucket Settings](images/bucket-before.png)
 
-### Step 2: Automated Detection & Remediation
-Within 5 minutes, EventBridge triggered the Lambda function. The function identified the insecure bucket and applied the **Public Access Block** settings immediately.
+### 2. The Fix (Logs)
+I waited a few minutes, and sure enough, the Lambda function woke up, saw the problem, and fixed it.
 
 ![Lambda Logs](images/lambda-logs.png)
-*Figure 2: CloudWatch logs showing the identification and fixing of the insecure bucket.*
+*The logs showing the script finding the open bucket and locking it down.*
 
-### Step 3: Verified Secure State
-The bucket settings were automatically updated to "Block all public access." Any attempt to revert these settings will be corrected in the next 5-minute cycle.
+### 3. All Secure (After)
+Checking the bucket again—it's back to being fully private. 
 
 ![Public Block Enabled](images/bucket-after.png)
 
 ---
 
-## 🔐 Security & Permissions
-
-This project adheres to the **Principle of Least Privilege (PoLP)**. The IAM role assigned to the Lambda function is strictly limited to:
-* `s3:ListAllMyBuckets`
-* `s3:GetBucketPublicAccessBlock`
-* `s3:PutBucketPublicAccessBlock`
+## 🔐 Permissions (Least Privilege)
+The Lambda function doesn't need "Admin" powers. I gave it just enough access to:
+* List the buckets in the account.
+* See the current public access settings.
+* Update those settings if they're wrong.
 
 ---
 
-## 📈 Key Skills Demonstrated
+## 📈 What I Learned
 
-* **Cloud Security:** Implementing automated remediation for S3 security best practices.
-* **Automation (IaC):** Using Terraform to manage serverless security workflows.
-* **Serverless Computing:** Developing Python/Boto3 logic for AWS Lambda.
-* **Observability:** Utilizing CloudWatch for auditing and tracking security changes.
+* **Cloud Security:** How to move from just "monitoring" to "auto-remediation."
+* **IaC:** Deepening my Terraform skills by managing serverless triggers and IAM roles.
+* **Automation:** Using Python/Boto3 to handle repetitive security tasks.
+* **Troubleshooting:** Reading CloudWatch logs to verify that my logic actually works in the real world.
 
 ---
