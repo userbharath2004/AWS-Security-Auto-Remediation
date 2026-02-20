@@ -18,7 +18,6 @@ The setup is pretty straightforward and uses a few key AWS services:
 
 * **Amazon EventBridge:** The "alarm clock" that triggers the check every 5 minutes.
 * **AWS Lambda:** The "brain" that runs a Python script to scan all buckets.
-* **Boto3 SDK:** How the script talks to the S3 API to check and fix settings.
 * **CloudWatch:** Where I keep the logs so I can see exactly what got fixed and when.
 
 ## ⚙️ Infrastructure (The Terraform Bit)
